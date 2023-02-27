@@ -7,8 +7,12 @@ import os
 import json
 
 
-# dataset_list = ["daily_dialog", "empathetic_dialogues", "persona_chat", "blended_skill_talk"]
-dataset_list = ["daily_dialog"]
+dataset_list = [
+    "daily_dialog",
+    "empathetic_dialogues",
+    "persona_chat",
+    "blended_skill_talk",
+]
 
 
 def merge_data(tokenizer, args):
@@ -19,9 +23,12 @@ def merge_data(tokenizer, args):
     for data_name in dataset_list:
         print(f"Processing {data_name}...")
         if data_name == "daily_dialog":
-            part_train_dialogues, part_valid_dialogues, part_num_train, part_num_valid = load_daily(
-                tokenizer, args.train_frac
-            )
+            (
+                part_train_dialogues,
+                part_valid_dialogues,
+                part_num_train,
+                part_num_valid,
+            ) = load_daily(tokenizer, args.train_frac)
         elif data_name == "empathetic_dialogues":
             (
                 part_train_dialogues,
@@ -106,7 +113,9 @@ if __name__ == "__main__":
         default=0.85,
         help="The ratio of the conversations to be included in the train set.",
     )
-    parser.add_argument("--model_type", type=str, default="gpt2", help="The model type of GPT-2.")
+    parser.add_argument(
+        "--model_type", type=str, default="gpt2", help="The model type of GPT-2."
+    )
 
     args = parser.parse_args()
 

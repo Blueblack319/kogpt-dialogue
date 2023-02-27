@@ -1,0 +1,1 @@
+python src/train.py --mode="infer" --data_dir="data" --model_type="gpt2" --bos_token="<bos>" --sp1_token="<sp1>" --sp2_token="<sp2>" --gpu=1 --max_len=1024 --max_turns=5 --top_p=0.8 --ckpt_dir="checkpoints" --ckpt_name="last" --end_command="Abort!"
