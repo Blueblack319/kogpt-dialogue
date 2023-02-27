@@ -25,7 +25,7 @@ logger = logging.getLogger(__file__)
 class KoGPTDataModule(pl.LightningDataModule):
     def __init__(self, args):
         super(KoGPTDataModule, self).__init__()
-        # TODO: 조금 더 이쁘게 할 수 있을듯, DataModule에만 필요한 args를 따로 뽑아서 넣어주기?
+        ### TODO: 조금 더 이쁘게 할 수 있을듯, DataModule에만 필요한 args를 따로 뽑아서 넣어주기?
         self.args = args
 
     def setup(self, stage=None):
@@ -191,7 +191,7 @@ class KoGPTTask(pl.LightningModule):
                     token_type_ids=token_type_ids,
                     input_len=input_len,
                 )
-                # TODO: 왜 generate 안 쓴거야?
+                ### TODO: 왜 generate 안 쓴거야?
                 # output_ids = self.model.generate(
                 #     input_ids=input_ids, token_type_ids=token_type_ids, pad_token_id=self.args.eos_id,
                 #     do_sample=True, top_p=self.args.top_p, max_length=self.args.max_len,
@@ -218,7 +218,7 @@ class KoGPTTask(pl.LightningModule):
         # Bot이 말한 idx도 input_ids에 붙이기
         for pos in range(input_len, self.hparams.max_len):
             # Q. 왜 자르는 거야? A. 마지막 logit 이용
-            # TODO: pos-1 == 마지막 idx랑 똑같지 않나? => pos-1 대신 -1 써도 될듯?
+            ### TODO: pos-1 == 마지막 idx랑 똑같지 않나? => pos-1 대신 -1 써도 될듯?
             logits = self.model(input_ids=input_ids, token_type_ids=token_type_ids)[0][
                 :, pos - 1
             ]

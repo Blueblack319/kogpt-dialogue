@@ -7,16 +7,29 @@ space = "Ġ"
 pre_quote = "’"
 end_marks = [".", ",", "?", "!", "..."]
 quotes = ['"', "'"]
-abbreviations = ["s", "d", "t", "m", "re", "ll", "ve", "S", "D", "T", "M", "Re", "Ll", "Ve"]
+abbreviations = [
+    "s",
+    "d",
+    "t",
+    "m",
+    "re",
+    "ll",
+    "ve",
+    "S",
+    "D",
+    "T",
+    "M",
+    "Re",
+    "Ll",
+    "Ve",
+]
 
 # For empathetic dialogues
 exclude_symbol = "_conv"
 comma_symbol = "_comma_"
 
 # For persona chat
-persona_chat_url = (
-    "https://s3.amazonaws.com/datasets.huggingface.co/personachat/personachat_self_original.json"
-)
+persona_chat_url = "https://s3.amazonaws.com/datasets.huggingface.co/personachat/personachat_self_original.json"
 silence_symbol = "__ SILENCE __"
 
 
@@ -58,8 +71,12 @@ def load_empathetic(tokenizer, train_frac):
     valid_data = dataset["validation"]
     test_data = dataset["test"]
 
-    total_utters = train_data["utterance"] + valid_data["utterance"] + test_data["utterance"]
-    total_conv_ids = train_data["conv_id"] + valid_data["conv_id"] + test_data["conv_id"]
+    total_utters = (
+        train_data["utterance"] + valid_data["utterance"] + test_data["utterance"]
+    )
+    total_conv_ids = (
+        train_data["conv_id"] + valid_data["conv_id"] + test_data["conv_id"]
+    )
     total_speaker_ids = (
         train_data["speaker_idx"] + valid_data["speaker_idx"] + test_data["speaker_idx"]
     )
@@ -160,17 +177,25 @@ def load_blended(tokenizer, train_frac):
         + data_test["previous_utterance"]
     )
     total_free_messages = (
-        data_train["free_messages"] + data_valid["free_messages"] + data_test["free_messages"]
+        data_train["free_messages"]
+        + data_valid["free_messages"]
+        + data_test["free_messages"]
     )
     total_guided_messages = (
-        data_train["guided_messages"] + data_valid["guided_messages"] + data_test["guided_messages"]
+        data_train["guided_messages"]
+        + data_valid["guided_messages"]
+        + data_test["guided_messages"]
     )
 
     total_dialogues = []
     for i, free_message in enumerate(tqdm(total_free_messages)):
-        free_message_list = [utter.strip() for utter in free_message if len(utter.strip()) > 0]
+        free_message_list = [
+            utter.strip() for utter in free_message if len(utter.strip()) > 0
+        ]
         guided_message_list = [
-            utter.strip() for utter in total_guided_messages[i] if len(utter.strip()) > 0
+            utter.strip()
+            for utter in total_guided_messages[i]
+            if len(utter.strip()) > 0
         ]
         dialogue = total_previous_utterance[i]
 
@@ -180,7 +205,9 @@ def load_blended(tokenizer, train_frac):
             dialogue.append(text)
 
             if j < len(guided_message_list):
-                token_list = process_token_list(tokenizer.tokenize(guided_message_list[j]))
+                token_list = process_token_list(
+                    tokenizer.tokenize(guided_message_list[j])
+                )
                 text = tokenizer.convert_tokens_to_string(token_list)
                 dialogue.append(text)
 
@@ -212,7 +239,8 @@ def process_token_list(token_list):
             if token[1:] == quotes[1]:
                 if i < len(token_list) - 1:
                     if token_list[i + 1] in abbreviations or (
-                        token_list[i + 1][0] == space and token_list[i + 1][1:] in abbreviations
+                        token_list[i + 1][0] == space
+                        and token_list[i + 1][1:] in abbreviations
                     ):
                         token_list[i] = token[1:]
 
@@ -232,7 +260,9 @@ def process_token_list(token_list):
                 else:
                     token_list[i + 1] = space + token_list[i + 1][1:].capitalize()
 
-    new_token_list = [token for token in token_list if token != space and len(token) > 0]
+    new_token_list = [
+        token for token in token_list if token != space and len(token) > 0
+    ]
     if new_token_list[-1] not in end_marks:
         new_token_list.append(end_marks[0])
 

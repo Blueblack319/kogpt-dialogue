@@ -1,0 +1,1 @@
+python src/extract_data.py --src_path="/home/intern/nas2/jhoon/kogpt-dialogue/raw/aihub/20_json/training/kakao1/*.json" --dst_path="/home/intern/nas2/jhoon/kogpt-dialogue/data/aihub/20/training/kakao1.json" --files_failed="/home/intern/nas2/jhoon/kogpt-dialogue/kakao1_failed.json"
