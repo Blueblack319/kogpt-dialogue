@@ -1,1 +1,0 @@
-python src/process.py --data_dir="/home/intern/nas2/jhoon/kogpt-dialogue/data/aihub/20/training" --tokens_file="kakao1"
