@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__file__)
 
 
-class CustomDataset(Dataset):
+class Custom20Dataset(Dataset):
     def __init__(self, prefix, args):
         assert prefix == args.train_prefix or prefix == args.valid_prefix
 
@@ -25,12 +25,12 @@ class CustomDataset(Dataset):
         logger.info(f"Processing {prefix} data...")
         for dial in tqdm(dials):
             hists = []
-            for sp, utter in enumerate(dial):
+            for utter in dial:
                 # utter: [input_id, ...., input_id]
-                if sp % 2 == 0:
-                    hists.append([args.sp1_id] + utter)
+                if utter[0] == "1":
+                    hists.append([args.sp1_id] + utter[1])
                 else:
-                    hists.append([args.sp2_id] + utter)
+                    hists.append([args.sp2_id] + utter[1])
             # hists: [[sp1_id, input_ids, ....], [sp1_id, input_ids, ....], [sp1_id, input_ids, ....], ...]
             for h in range(len(hists)):
                 if hists[h][0] == args.sp2_id:
@@ -43,12 +43,13 @@ class CustomDataset(Dataset):
                             + [args.eos_id]
                         )
                         if len(input_ids) <= args.max_len:
-                            start_sp_id, next_sp_id = contexts[0][0], contexts[1][0]
+                            # The first token을 보고 결정
+                            start_sp_id = contexts[0][0]
                             token_type_ids = [
-                                [start_sp_id] * len(ctx)
-                                if c % 2 == 0
-                                else [next_sp_id] * len(ctx)
-                                for c, ctx in enumerate(contexts)
+                                [args.sp1_id] * len(ctx)
+                                if ctx[0] == args.sp1_id
+                                else [args.sp2_id] * len(ctx)
+                                for ctx in contexts
                             ]
                             assert token_type_ids[-1][0] == args.sp2_id
                             token_type_ids = (

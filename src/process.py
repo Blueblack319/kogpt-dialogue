@@ -1,3 +1,4 @@
+import os
 import json
 from tqdm import tqdm
 import argparse
@@ -8,25 +9,21 @@ from transformers import PreTrainedTokenizerFast
 
 logging.basicConfig(level=logging.INFO)
 
-data_src = [
-    "band",
-    "facebook",
-    "instagram",
-    "kakao1",
-    "kakao2",
-    "kakao3",
-    "kakao4",
-    "nateon",
-]
-
 
 def extract_from_raw(args) -> None:
     logger.info("Starting to extract data from raw!")
     for src in data_src:
-        path_src = f"{args.raw_dir}/{src}/*"
-        path_failed = f"{args.failed_dir}/{src}_failed.json"
-        path_dst = f"{args.data_dir}/{src}.json"
-        path_exceptions = f"{args.exceptions_dir}/{src}_exceptions.json"
+        failed_dir = f"{args.failed_dir}/{args.mode}"
+        exceptions_dir = f"{args.exceptions_dir}/{args.mode}"
+        if not os.path.exists(failed_dir):
+            os.makedirs(failed_dir)
+        if not os.path.exists(exceptions_dir):
+            os.makedirs(exceptions_dir)
+
+        path_src = f"{args.raw_dir}/{args.mode}/{src}/*"
+        path_failed = f"{failed_dir}/{src}_failed.json"
+        path_dst = f"{args.data_dir}/{args.mode}/{src}.json"
+        path_exceptions = f"{exceptions_dir}/{src}_exceptions.json"
 
         dataset = []
         files_failed = []
@@ -70,13 +67,13 @@ def load_data(path: str) -> list:
     return data
 
 
-def save_data(tokenizer, args):
-    logger.info("Starting to save the data converted into ids")
+def convert_to_ids(tokenizer, args):
+    logger.info("Starting to convert data to ids")
     for src in data_src:
         logging.info(f"Processing {src} data...")
-        tokens_path = f"{args.data_dir}/{src}.json"
-        ids_path = f"{args.data_dir}/{src}_ids.json"
-        dialogues = load_data(tokens_path)
+        path_tokens = f"{args.data_dir}/{args.mode}/{src}.json"
+        path_ids = f"{args.data_dir}/{args.mode}/{src}_ids.json"
+        dialogues = load_data(path_tokens)
         ids = []
         for dialogue in tqdm(dialogues):
             dialogue_ids = []
@@ -92,8 +89,23 @@ def save_data(tokenizer, args):
         msg = "Lengths must be equal"
         assert len(ids) == len(dialogues), msg
 
-        with open(ids_path, "w") as f:
+        with open(path_ids, "w") as f:
             json.dump(ids, f)
+
+
+def merge_data(args):
+    logger.info("Start to merge ids to train_ids or valid_ids")
+    path_merged = f"{args.data_dir}/{args.mode}_ids.json"
+    dialogues = list()
+
+    for src in data_src:
+        logging.info(f"Processing {src} data...")
+        path_ids = f"{args.data_dir}/{args.mode}/{src}_ids.json"
+        dials = load_data(path_ids)
+        dialogues += dials
+
+    with open(path_merged, "w") as f:
+        json.dump(dialogues, f)
 
 
 if __name__ == "__main__":
@@ -125,18 +137,48 @@ if __name__ == "__main__":
         help="The name of the directory where the exceptions are stored.",
     )
     parser.add_argument(
-        "--mode",
+        "--process",
         type=str,
         default="extract",
         required=True,
-        help="Extract data from raw or save ids",
+        help="The process to handle data",
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="train",
+        help="The data type of processing(train or valid).",
     )
 
     args = parser.parse_args()
     logger = logging.getLogger(__file__)
 
-    if args.mode == "extract":
+    if args.mode == "train":
+        data_src = [
+            "band",
+            "facebook",
+            "instagram",
+            "kakao1",
+            "kakao2",
+            "kakao3",
+            "kakao4",
+            "nateon",
+        ]
+    elif args.mode == "valid":
+        data_src = [
+            "band",
+            "facebook",
+            "instagram",
+            "kakao",
+            "nateon",
+        ]
+
+    if args.process == "extract":
         extract_from_raw(args)
-    elif args.mode == "save":
-        tokenizer = PreTrainedTokenizerFast.from_pretrained("skt/kogpt2-base-v2")
-        save_data(tokenizer, args)
+    elif args.process == "convert":
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(
+            "skt/ko-gpt-trinity-1.2B-v0.5"
+        )
+        convert_to_ids(tokenizer, args)
+    elif args.process == "merge":
+        merge_data(args)

@@ -1,1 +1,1 @@
-python src/process.py --data_dir="/home/intern/nas2/jhoon/kogpt-dialogue/data/aihub/20/training" --raw_dir="/home/intern/nas2/jhoon/kogpt-dialogue/raw/aihub/20_json/training" --mode='save'
+python src/process.py --data_dir="/home/intern/nas2/jhoon/kogpt-dialogue/data/aihub/20" --raw_dir="/home/intern/nas2/jhoon/kogpt-dialogue/raw/aihub/20_json" --mode='valid' --process='merge'

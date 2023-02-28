@@ -11,12 +11,10 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from transformers import (
     GPT2LMHeadModel,
-    GPT2Tokenizer,
+    PreTrainedTokenizerFast,
     get_polynomial_decay_schedule_with_warmup,
 )
-import torchmetrics
-
-from custom_dataset import CustomDataset, PadCollate
+from custom import Custom20Dataset, PadCollate
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
@@ -31,8 +29,8 @@ class KoGPTDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
         # Load train & valid dataset
         logger.info("Loading train & valid data...")
-        self.train_set = CustomDataset(self.args.train_prefix, self.args)
-        self.valid_set = CustomDataset(self.args.valid_prefix, self.args)
+        self.train_set = Custom20Dataset(self.args.train_prefix, self.args)
+        self.valid_set = Custom20Dataset(self.args.valid_prefix, self.args)
         self.ppd = PadCollate(eos_id=self.args.eos_id)
         self.num_batches = len(self.train_dataloader())
 
@@ -353,14 +351,15 @@ if __name__ == "__main__":
         "microsoft/DialoGPT-medium",
         "microsoft/DialoGPT-large",
         "skt/kogpt2-base-v2",
+        "skt/ko-gpt-trinity-1.2B-v0.5",
     ]
 
-    args.data_dir = f"{args.data_dir}/{args.model_type}"
+    # args.data_dir = f"{args.data_dir}/{args.model_type}"
     args.ckpt_dir = f"{args.ckpt_dir}/{args.model_type}"
 
     # Tokenizer & Vocab
     logger.info("Loading the tokenizer...")
-    args.tokenizer = GPT2Tokenizer.from_pretrained(args.model_type)
+    args.tokenizer = PreTrainedTokenizerFast.from_pretrained(args.model_type)
     special_tokens = {
         "bos_token": args.bos_token,
         "additional_special_tokens": [args.sp1_token, args.sp2_token],
@@ -393,13 +392,10 @@ if __name__ == "__main__":
         model = KoGPTTask(args)
         model.train()
 
-        if args.gpu == 1:
-            trainer = pl.Trainer.from_argparse_args(
-                args,
-                callbacks=[checkpoint_callback],
-            )
-        else:
-            trainer = pl.Trainer()
+        trainer = pl.Trainer.from_argparse_args(
+            args,
+            callbacks=[checkpoint_callback],
+        )
         trainer.fit(model=model, datamodule=dm)
         logger.info(f"best model path: {checkpoint_callback.best_model_path}")
 
